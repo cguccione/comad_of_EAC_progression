@@ -185,6 +185,10 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
             pyplot.plot(col['mean_abundance'], col['occurrence'], 'o', 
                 markersize=markersize, fillstyle='full', color='grey')
     
+    '''#Sam's data
+    hp_occurr_freqs = occurr_freqs.loc['Helicobacter_pylori']
+    pyplot.plot(hp_occurr_freqs['mean_abundance'], hp_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='magenta')
+    '''
     
     #Plot HP last so we can see coloring
     if HP_color != False:
@@ -199,18 +203,18 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
         #Save plot
         pyplot.tight_layout()
         pyplot.gcf().set_size_inches(7, 5)
-        output='/Users/cguccion/Dropbox/current_Spring23/ISMEJ_EsophModeling_Paper/Figures/comad_of_EAC_progression/outputs/neufit_plots/'
+        output='/Users/cguccion/Dropbox/current_Summer23/ISMEJ_EsophModeling_Paper/Figures/comad_of_EAC_progression/outputs/neufit_plots/'
         pyplot.savefig(output)
         pyplot.savefig(output + fn + '.png')
         pyplot.savefig(output + fn + '.pdf')
         
-        #Save df 
-        output='/Users/cguccion/Dropbox/current_Spring23/ISMEJ_EsophModeling_Paper/Figures/comad_of_EAC_progression/outputs/occur_freqs/'
-        occurr_freqs.to_csv(output + sfn + '.tsv', sep='\t', index = False)
+    #Save df 
+    output='/Users/cguccion/Dropbox/current_Summer23/ISMEJ_EsophModeling_Paper/Figures/comad_of_EAC_progression/outputs/occur_freqs/'
+    occurr_freqs.to_csv(output + fn + '.tsv', sep='\t')
 
     pyplot.show()
     
-def standout_microbes(occurr_freqs, fn, threshold=0.2):
+def standout_microbes(occurr_freqs, fn, threshold=0.1):
     #Create dataframe
     standoutMicrobes = pd.DataFrame(columns = ('Difference off Neutral Model',
                                                'Taxonomy'))
@@ -229,7 +233,7 @@ def standout_microbes(occurr_freqs, fn, threshold=0.2):
     #Display and export non-neutral microbes as csv
     print("\nTop NonNeutral Microbes")
     display(standoutMicrobes)
-    output='/Users/cguccion/Dropbox/current_Spring23/ISMEJ_EsophModeling_Paper/Figures/comad_of_EAC_progression/outputs/non_neutral/'
+    output='/Users/cguccion/Dropbox/current_Summer23/ISMEJ_EsophModeling_Paper/Figures/comad_of_EAC_progression/outputs/non_neutral/'
     standoutMicrobes.to_csv(output + fn + '.tsv', sep = '\t', index = False)
     
 def calculate_summary_table(fn):
@@ -276,7 +280,7 @@ def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None):
     beta_fit, r_square = neufit_calc(occurr_freqs, n_reads, n_samples)
     
     #Neufit Plotting
-    neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, True) #Save file here'experimental_outputs/Hutch_combined_WOL_neufit.png')
+    neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn)#, True) #Save file here'experimental_outputs/Hutch_combined_WOL_neufit.png')
 
     ''' Taxonomy file only for WOL rn .. I don't think this is used later but should check
     Will probs want to update this to [WOL, REP200... ect and then have all the files stored

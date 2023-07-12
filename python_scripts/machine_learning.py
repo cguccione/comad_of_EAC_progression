@@ -208,16 +208,26 @@ def gradientBoosting_ML_ss(table, meta, metric, gb_max_depth=2, gb_n_estimators=
     
     plt.show()
     
-def ML(fn, metric, cross_validation_splits=10):
+def ML(fn, metric, cross_validation_splits=10, use_non_neutral=False):
     
     #Import biom table in pandas df/tsv form for current dataset
     biom_df = pd.read_csv('processed_data/pandas_df/' + fn + '.tsv', sep = '\t', index_col=0)
     biom_df = biom_df.astype(int)
     
+    if use_non_neutral != False:
+        #This uses only the non-neutral microbes for the provided input
+        nn = pd.read_csv('outputs/non_neutral/' + use_non_neutral + '.tsv', sep = '\t')
+        biom_df = biom_df.loc[nn['Taxonomy']]
+        print('Using only top', len(biom_df), 'non-neutral microbes from', use_non_neutral)
+    
     #Import metadata for current dataset
     meta = pd.read_csv('processed_data/metadata/metadata_' + fn + '.tsv', sep = '\t')
     #Subset meta to only include those in the df below
     meta = meta[meta['sample_name'].isin(list(biom_df.columns))]
+    
+    meta_temp = meta.sort_values('sample_name', ascending=True)
+    all_cats = meta_temp[metric].tolist()
+    print(set(all_cats))
     
     #Run machine learning stratified-split
     print('Stratfied-split')
@@ -227,7 +237,6 @@ def ML(fn, metric, cross_validation_splits=10):
     gradientBoosting_ML_cv(biom_df, meta, metric, cross_validation_splits=cross_validation_splits)
 
 def ML_combine(fn, metric, table_list, cross_validation_splits=10):
-    
     
     ##would make this into function eventally because used in beta too
     table = pd.DataFrame()

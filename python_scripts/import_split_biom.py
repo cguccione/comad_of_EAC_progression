@@ -115,6 +115,7 @@ def be_data_split(progression, timepoint, biom, fn):
     meta_custom =  meta[(meta.sampletype.isin(timepoint)) & 
                         (meta.progressionstatus.isin(progression))]
     meta_custom = meta_custom.reset_index(drop = True)
+    meta_custom['sampletype_progressionstatus'] = meta_custom['sampletype'] + '_' + meta_custom['progressionstatus']
     display(meta_custom[:3])
     
     #Create all files based on biom/meta_custom
