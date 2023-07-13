@@ -39,7 +39,7 @@ def data_split_helper(biom, meta, fn):
     
     return()
 
-def data_split_helper_csv(meta, progression, timepoint, csv, fn):
+def data_split_helper_csv(meta, progression, timepoint, csv, fn, counts=False):
     'Given metadata + csv, create other files - Particular to Sam input'
     
     #Convert filenames from Sam's file '23341' into filenames from ours '14598.PCGA.1123.BE.01'
@@ -69,8 +69,9 @@ def data_split_helper_csv(meta, progression, timepoint, csv, fn):
     df = sam_df[sam_df.columns.intersection(meta_custom['sample_name'].tolist())]
     print('Total number of samples in', fn, ' = ', df.shape[1])
     
-    #Since we have fractions here, multiply every cell by 100,000
-    df = df * 100000
+    if counts == False:
+        #Since we have fractions here, multiply every cell by 100,000
+        df = df * 100000
     
     #Create custom qza table (just selected disease type)
     custom_qza = Artifact.import_data("FeatureTable[Frequency]", df.T)
@@ -95,14 +96,15 @@ def data_split_helper_csv(meta, progression, timepoint, csv, fn):
     return()
     
     
-def Sam_BE_data_split(progression, timepoint, csv, fn):
+def Sam_BE_data_split(progression, timepoint, csv, fn, counts=False):
     '''To split csv table from BE Samples from Sam using MetaPhlan4 '''
+    #Leave counts=False if using relative abudances data, else change to counts=True
     
     #Import metadata from equivalent study on Qiita
     meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14598_BE_Esoph/sample_information_from_prep_14498.tsv', sep = '\t')
     
     #Convert from Sam to our format all files based on imported csv/meta_custom
-    data_split_helper_csv(meta, progression, timepoint, csv, fn) 
+    data_split_helper_csv(meta, progression, timepoint, csv, fn, counts=counts) 
     
     
 def be_data_split(progression, timepoint, biom, fn):
