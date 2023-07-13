@@ -153,8 +153,9 @@ def eac_data_split(biom, fn):
    
     return()
 
-def normal_be_eac_data_split(disease_type, biom, fn):
+def normal_be_eac_data_split(disease_type, biom, fn, exact_pairs=False):
     '''To split biom table from TBD, into a normal, BE, EAC biom table'''
+    #exact pairs just takes a single BE and EAC sample from each patient
     
     #Import metadata from Qiita
     meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiitaTBD_Norm_BE_EAC/qiita_sample_info.txt', sep = '\t')
@@ -164,6 +165,14 @@ def normal_be_eac_data_split(disease_type, biom, fn):
     
     #Create custom metadata for disease of intrest (just selected disease type)
     meta_custom = meta[(meta.Sample_type.isin(disease_type))]
+    
+    if exact_pairs == True:
+        new_meta = pd.DataFrame(columns = meta_custom.columns)
+        for index, row in meta_custom.iterrows():
+            if any((new_meta['Patient'] == row['Patient']) & (new_meta['Sample_type'] == row['Sample_type'])) == False:
+                new_meta.loc[len(new_meta)] = row
+        meta_custom = new_meta
+    
     meta_custom = meta_custom.reset_index(drop = True)
     display(meta_custom[:3])
     
