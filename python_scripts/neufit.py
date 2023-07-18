@@ -195,6 +195,7 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
     pyplot.plot(hp_occurr_freqs['mean_abundance'], hp_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='magenta')'''
     
     #Plot HP last so we can see coloring
+    #HP_color = True
     if HP_color != False:
         hp_occurr_freqs = occurr_freqs.loc['k__Bacteria;p__Proteobacteria;c__Epsilonproteobacteria;o__Campylobacterales;f__Helicobacteraceae;g__Helicobacter;s__Helicobacter pylori' , :]
         pyplot.plot(hp_occurr_freqs['mean_abundance'], hp_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='magenta')

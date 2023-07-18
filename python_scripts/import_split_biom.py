@@ -9,13 +9,35 @@ from biom import load_table
 from qiime2 import Artifact
 import os
 
-def data_split_helper(biom, meta, fn):
+def filter_zebra(df, zebra):
+    if zebra == 'Ross_WOL':
+        zebra_df = pd.read_csv(os.getcwd() + '/zebra/ross_innes_wol_zebra_out.txt', sep ='\t')
+    elif zebra == 'BE_WOL':
+        zebra_df = pd.read_csv(os.getcwd() + '/zebra/BE_wol_zebra_out.txt', sep ='\t')
+    elif zebra == 'EAC_WOL':
+        zebra_df = pd.read_csv(os.getcwd() + '/zebra/ICGC_wol_zebra_out.txt', sep = '\t')
+    elif zebra == 'EAC_TCGA_WOL':
+        zebra_df = pd.read_csv(os.getcwd() + '/zebra/TCGA_EAC_wol_zebra_out.txt', sep = '\t')
+    
+    #Subset zebra to at least 1% coverage
+    zebra_df = zebra_df[zebra_df['coverage_ratio'] >= 0.01]
+    
+    #Subset biom with zebra
+    df = df[df.index.isin(zebra_df['gotu'])]
+    
+    return(df)
+
+
+def data_split_helper(biom, meta, fn, zebra=False):
     'Given metadata + biom, create all datatypes needed'
     
     #Create custom df of biom table (just selected disease type)
     table = load_table(biom).to_dataframe()
     df = table[table.columns.intersection(meta['sample_name'].tolist())]
     print('Total number of samples in', fn, ' = ', df.shape[1])
+    
+    if zebra != False:
+        df = filter_zebra(df, zebra)
     
     #Create custom qza table (just selected disease type)
     custom_qza = Artifact.import_data("FeatureTable[Frequency]", df.T)
@@ -107,7 +129,7 @@ def Sam_BE_data_split(progression, timepoint, csv, fn, counts=False):
     data_split_helper_csv(meta, progression, timepoint, csv, fn, counts=counts) 
     
     
-def be_data_split(progression, timepoint, biom, fn):
+def be_data_split(progression, timepoint, biom, fn, zebra=False, exact_pairs= False, trim=False):
     '''To split biom table from 14598, into various timepoint/progression types'''
     
     #Import metadata from Qiita
@@ -118,10 +140,20 @@ def be_data_split(progression, timepoint, biom, fn):
                         (meta.progressionstatus.isin(progression))]
     meta_custom = meta_custom.reset_index(drop = True)
     meta_custom['sampletype_progressionstatus'] = meta_custom['sampletype'] + '_' + meta_custom['progressionstatus']
+    
+    if exact_pairs == True:
+        new_meta = pd.DataFrame(columns = meta_custom.columns)
+        for index, row in meta_custom.iterrows():
+            if any((new_meta['pairednormal'] == row['pairednormal']) & (new_meta['sampletype'] == row['sampletype'])) == False:
+                new_meta.loc[len(new_meta)] = row
+        meta_custom = new_meta
+    
+    if trim!= False:
+        meta_custom = meta_custom.sample(trim)
     display(meta_custom[:3])
     
     #Create all files based on biom/meta_custom
-    data_split_helper(biom, meta_custom, fn)
+    data_split_helper(biom, meta_custom, fn, zebra=zebra)
     
     return()
     
@@ -142,18 +174,37 @@ def gerd_normal_data_split(disease_type, biom, fn):
     
     return()
 
-def eac_data_split(biom, fn): 
+def eac_data_split(biom, fn, zebra=False, trim=False): 
     
     #Import metadata from Qiita
     meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14521_EAC_ICGC/sample_info_14521_20220509-203030.txt', sep = '\t')
     
-    #Create all files based on biom/meta_custom
-    data_split_helper(biom, meta, fn)
+    if trim!= False:
+        meta = meta.sample(trim)
+    
     display(meta[:3])
+    
+    #Create all files based on biom/meta_custom
+    data_split_helper(biom, meta, fn, zebra=zebra)
    
     return()
 
-def normal_be_eac_data_split(disease_type, biom, fn, exact_pairs=False):
+def eac_tcga_data_split(biom, fn, zebra=False, trim=False): 
+    
+    #Import metadata from Qiita
+    meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14990_EAC_TCGA/sample_information_from_prep_14621.tsv', sep = '\t')
+    
+    if trim!= False:
+        meta = meta.sample(trim)
+    
+    display(meta[:3])
+    
+    #Create all files based on biom/meta_custom
+    data_split_helper(biom, meta, fn, zebra=zebra)
+   
+    return()
+
+def normal_be_eac_data_split(disease_type, biom, fn, exact_pairs=False, zebra=False):
     '''To split biom table from TBD, into a normal, BE, EAC biom table'''
     #exact pairs just takes a single BE and EAC sample from each patient
     
@@ -177,7 +228,7 @@ def normal_be_eac_data_split(disease_type, biom, fn, exact_pairs=False):
     display(meta_custom[:3])
     
     #Create all files based on biom/meta_custom
-    data_split_helper(biom, meta_custom, fn)
+    data_split_helper(biom, meta_custom, fn, zebra=zebra)
     
     return()
 
