@@ -18,6 +18,8 @@ def filter_zebra(df, zebra):
         zebra_df = pd.read_csv(os.getcwd() + '/zebra/ICGC_wol_zebra_out.txt', sep = '\t')
     elif zebra == 'EAC_TCGA_WOL':
         zebra_df = pd.read_csv(os.getcwd() + '/zebra/TCGA_EAC_wol_zebra_out.txt', sep = '\t')
+    elif zebra == 'norm_GERD_WOL':
+        zebra_df = pd.read_csv(os.getcwd() + '/zebra/mixed_Esoph_wol_zebra_out.txt', sep = '\t')
     
     #Subset zebra to at least 1% coverage
     zebra_df = zebra_df[zebra_df['coverage_ratio'] >= 0.01]
@@ -158,7 +160,7 @@ def be_data_split(progression, timepoint, biom, fn, zebra=False, exact_pairs= Fa
     return()
     
 
-def gerd_normal_data_split(disease_type, biom, fn):
+def gerd_normal_data_split(disease_type, biom, fn, zebra=False, trim=False):
     '''To split biom table from 14458, into a normal and gerd biom table'''
     
     #Import metadata from Qiita
@@ -167,10 +169,13 @@ def gerd_normal_data_split(disease_type, biom, fn):
     #Create custom metadata for disease of intrest (just selected disease type)
     meta_custom =  meta[(meta.diagnosis == disease_type)]
     meta_custom = meta_custom.reset_index(drop = True)
+    
+    if trim!= False:
+        meta_custom = meta_custom.sample(trim)
     display(meta_custom[:3])
     
     #Create all files based on biom/meta_custom
-    data_split_helper(biom, meta_custom, fn)
+    data_split_helper(biom, meta_custom, fn, zebra=zebra)
     
     return()
 
@@ -231,6 +236,8 @@ def normal_be_eac_data_split(disease_type, biom, fn, exact_pairs=False, zebra=Fa
     data_split_helper(biom, meta_custom, fn, zebra=zebra)
     
     return()
+
+############################ AIM 3 ########################
 
 def HCC_data_split(tumor_type, host_sample_type, biom, fn):
     '''Used for HCC Amir Aim 3'''
