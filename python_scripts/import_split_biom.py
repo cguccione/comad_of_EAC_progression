@@ -7,6 +7,7 @@ metadata.
 import pandas as pd
 from biom import load_table
 from qiime2 import Artifact
+from qiime2.plugins import taxa
 import os
 
 def filter_zebra(df, zebra):
@@ -28,6 +29,39 @@ def filter_zebra(df, zebra):
     df = df[df.index.isin(zebra_df['gotu'])]
     
     return(df)
+
+def species_from_zebra(custom_qza, export_filepath, fn, meta):
+    #Create species table from zebra
+    
+    #Convert from genome to species and output that as well
+    taxdf = pd.read_csv(os.getcwd() + '/qiita_downloads/WOL_lineages.txt', sep='\t', index_col=0, header=None)
+    taxdf.columns = ['Taxon']
+    taxdf.index.name = 'Feature ID'
+    taxonomy = Artifact.import_data('FeatureData[Taxonomy]', taxdf)
+    species_qza = taxa.methods.collapse(table=custom_qza, taxonomy=taxonomy, level=7).collapsed_table
+    
+    #Convert to pandas df
+    df = species_qza.view(pd.DataFrame)
+    df = df.T
+    
+    #Change fn from genome to species
+    fn = fn.replace('genome', 'species')
+    
+    #Export metadata
+    meta_filename = export_filepath + 'metadata/' +'metadata_' + fn + '.tsv'
+    meta.to_csv(meta_filename, sep = '\t', index = False)
+         
+    #Export biom table in the form of pandas df 
+    filename = export_filepath + 'pandas_df/' + fn + '.tsv'
+    df.to_csv(filename, sep = '\t')
+    
+    #Export qza
+    species_qza.save(export_filepath + 'qza/' + fn + '.qza')
+    
+    #Save qza as biom table
+    Artifact.export_data(species_qza, export_filepath + 'biom/' + fn + '.biom')
+    
+    return()
 
 
 def data_split_helper(biom, meta, fn, zebra=False):
@@ -60,6 +94,10 @@ def data_split_helper(biom, meta, fn, zebra=False):
     
     #Save qza as biom table
     Artifact.export_data(custom_qza, export_filepath + 'biom/' + fn + '.biom')
+    
+    if zebra != False:
+        #Convert from genome to species and output that as well
+        species_from_zebra(custom_qza, export_filepath, fn, meta)
     
     return()
 
@@ -179,10 +217,19 @@ def gerd_normal_data_split(disease_type, biom, fn, zebra=False, trim=False):
     
     return()
 
-def eac_data_split(biom, fn, zebra=False, trim=False): 
+def eac_data_split(biom, fn, zebra=False, trim=False, stage=False): 
     
     #Import metadata from Qiita
     meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14521_EAC_ICGC/sample_info_14521_20220509-203030.txt', sep = '\t')
+    
+    if stage!= False:
+        meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14521_EAC_ICGC/sample_info_14521_20220509-203030_extended.txt',
+                           sep = '\t')
+        if stage == 'low': #1 or 2
+            meta = meta[(meta.tumour_grade.isin([1,2]))]
+        elif stage == 'high': #3
+            meta = meta[(meta.tumour_grade.isin([3]))]  
+        meta = meta.reset_index(drop = True)
     
     if trim!= False:
         meta = meta.sample(trim)
