@@ -198,11 +198,13 @@ def be_data_split(progression, timepoint, biom, fn, zebra=False, exact_pairs= Fa
     return()
     
 
-def gerd_normal_data_split(disease_type, biom, fn, zebra=False, trim=False):
+def gerd_normal_data_split(disease_type, biom, fn, zebra=False, trim=False, shotgun=True):
     '''To split biom table from 14458, into a normal and gerd biom table'''
     
     #Import metadata from Qiita
     meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14458_NormalGerdEsoph/sample_information_from_prep_14487.tsv', sep = '\t')
+    if shotgun == False:
+        meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14325_16S_NormalGerdEsoph/matched_w_shotgun_sample_information_from_prep_12316.tsv', sep = '\t')
     
     #Create custom metadata for disease of intrest (just selected disease type)
     meta_custom =  meta[(meta.diagnosis == disease_type)]
