@@ -219,6 +219,21 @@ def gerd_normal_data_split(disease_type, biom, fn, zebra=False, trim=False, shot
     
     return()
 
+def eac_14857_data_split(biom, fn, trim=False): 
+    
+    #Import metadata from Qiita
+    meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14857_EAC_ICGC/sample_information_from_ESAD_ICGC_14857_prep_13977.txt', sep = '\t')
+    
+    if trim!= False:
+        meta = meta.sample(trim)
+    
+    display(meta[:3])
+    
+    #Create all files based on biom/meta_custom
+    data_split_helper(biom, meta, fn, zebra=zebra)
+   
+    return()
+
 def eac_data_split(biom, fn, zebra=False, trim=False, stage=False): 
     
     #Import metadata from Qiita
