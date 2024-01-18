@@ -1,0 +1,18 @@
+sample_name	Patient	Sample_type	Centre	Gender	Age_at_time_of_diagnosis	TNM7	Stage	Germline tissue	BE maximal length (cm)	Tumor length (mm)	purity-filtered pairs	% aligned pairs	median insert size	% mapQ=0	error rate HiQ	genome coverage mapQ>3	Callable genome	totalNumberSnps	Sample purity
+Tumor_10_EGAF00000530893	10	EAC	Addenbrookes Hospital, Cambridge	F	79	T2N0M0	IB	Blood	4.0	15.0	950,588,085	93.72	315.0	4.57	0.229	58.65	0.975		0.5
+Tumor_15_EGAF00000525475	15	EAC	Royal Surrey County Hospital, Guildford	M	75	T3N3M1	IV	Blood	9.0	90.0	1,428,413,104	90.4	308.0	6.36	0.24	83.4	0.973		0.7
+Tumor_15_EGAF00000814868	15	EAC	Royal Surrey County Hospital, Guildford	M	75	T3N3M1	IV	Blood	9.0	90.0	1,428,413,104	90.4	308.0	6.36	0.24	83.4	0.973		0.7
+Tumor_15_EGAF00000814880	15	EAC	Royal Surrey County Hospital, Guildford	M	75	T3N3M1	IV	Blood	9.0	90.0	1,428,413,104	90.4	308.0	6.36	0.24	83.4	0.973		0.7
+Tumor_17_EGAF00000525479	17	EAC	Royal Surrey County Hospital, Guildford	M	82	T3N1M0	IIIA	Blood	6.0	50.0	1,039,100,344	92.48	310.0	5.05	0.239	62.44	0.975		0.8
+Tumor_19_EGAF00000530869	19	EAC	Addenbrookes Hospital, Cambridge	M	75	T3N0M0	IIA	Blood		20.0	1,295,238,943	94.76	430.0	4.28	0.232	80.45	0.979		0.4
+Tumor_1_EGAF00000501976	1	EAC	Addenbrookes Hospital, Cambridge	M	62	T2N0M0	IB	Blood		40.0	1,244,932,641	95.13	297.0	4.27	0.225	75.79	0.978		0.6
+Tumor_20_EGAF00000560131	20	EAC	Edinburgh Royal Infirmary, Edinburgh	F	79	T3N1M0	IIIA	Blood			1,299,881,737	94.0	308.0	4.67	0.231	77.76	0.978		0.5
+Tumor_21_EGAF00000560132	21	EAC	Royal Surrey County Hospital, Guildford	M	61	T1N0M0	IA	Blood	5.0	10.0	1,070,994,332	93.79	308.0	4.8	0.251	64.93	0.976		0.6
+Tumor_22_EGAF00000525477	22	EAC	Royal Surrey County Hospital, Guildford	M	50	T3N3M0	IIIC	Blood	3.0	70.0	1,027,607,974	92.89	308.0	4.48	0.222	63.04	0.975		0.7
+Tumor_23_EGAF00000501978	23	EAC	Addenbrookes Hospital, Cambridge	M	64	TxNxMx		Blood	2.0		1,363,277,410	94.48	305.0	4.18	0.216	82.51	0.978		0.5
+Tumor_3_EGAF00000560133	3	EAC	Addenbrookes Hospital, Cambridge	M	61	T3N2M1	IV	Blood		80.0	1,009,393,707	92.92	312.0	5.49	0.288	60.89	0.975		0.3
+Tumor_4_EGAF00000525476	4	EAC	Royal Surrey County Hospital, Guildford	M	58	T3N1M0	IIIA	Blood	3.0	50.0	1,229,915,394	93.0	313.0	4.13	0.215	76.81	0.978		0.7
+Tumor_4_EGAF00000814885	4	EAC	Royal Surrey County Hospital, Guildford	M	58	T3N1M0	IIIA	Blood	3.0	50.0	1,229,915,394	93.0	313.0	4.13	0.215	76.81	0.978		0.7
+Tumor_5_EGAF00000525478	5	EAC	Gloucestershire Royal Hospital, Gloucester	M	64	T1N0M0	IA	Blood		22.0	980,497,612	92.11	305.0	4.77	0.237	59.99	0.975		0.7
+Tumor_7_EGAF00000501977	7	EAC	Addenbrookes Hospital, Cambridge	M	75	T3N0M0	IIA	Blood		20.0	1,249,130,092	94.94	313.0	4.38	0.225	76.14	0.978		0.5
+Tumor_9_EGAF00000525188	9	EAC	Addenbrookes Hospital, Cambridge	M	67	T1N0M0	IA	Blood	5.0	50.0	1,092,099,726	93.67	306.0	4.72	0.226	66.52	0.976		0.6

@@ -1,0 +1,24 @@
+sample_name	Patient	Sample_type	Centre	Gender	Age_at_time_of_diagnosis	TNM7	Stage	Germline tissue	BE maximal length (cm)	Tumor length (mm)	purity-filtered pairs	% aligned pairs	median insert size	% mapQ=0	error rate HiQ	genome coverage mapQ>3	Callable genome	totalNumberSnps	Sample purity
+Barretts_10_EGAF00000530875	10	Barretts	Addenbrookes Hospital, Cambridge	F	79	T2N0M0	IB	Blood	4.0	15.0	935,820,463	92.57	339.0	5.3	0.245	55.76	0.975		0.8
+Barretts_11_EGAF00000586502	11	Barretts	Addenbrookes Hospital, Cambridge	M	67	T4N2M0	IIIC	Normal esophagus	3.0	70.0	1,135,954,265	93.5	300.0	4.77	0.231	67.45	0.976		0.6
+Barretts_12_EGAF00000525202	12	Barretts	Addenbrookes Hospital, Cambridge	M	65	T2N1M0	IIB	Blood		29.0	955,544,208	93.01	310.0	5.04	0.243	57.2	0.975		0.3
+Barretts_13_EGAF00000525459	13	Barretts	Royal Surrey County Hospital, Guildford	F	61	T2N0M0	IB	Blood	15.0		916,018,805	92.02	298.0	5.19	0.222	54.36	0.973		0.6
+Barretts_14_EGAF00000560129	14	Barretts	St Thomas Hospital, London	M	68	T3N1M0	IIIA	Blood	6.0	30.0	1,015,964,392	93.48	317.0	4.7	0.253	61.75	0.976		0.3
+Barretts_15_EGAF00000525456	15	Barretts	Royal Surrey County Hospital, Guildford	M	75	T3N3M1	IV	Blood	9.0	90.0	1,130,452,513	91.07	323.0	4.91	0.237	67.85	0.977		0.7
+Barretts_16_EGAF00000525464	16	Barretts	Addenbrookes Hospital, Cambridge	M	65	T3N1M0	IIIA	Blood		31.0	944,468,448	92.38	292.0	4.79	0.234	57.7	0.975		0.8
+Barretts_17_EGAF00000525463	17	Barretts	Royal Surrey County Hospital, Guildford	M	82	T3N1M0	IIIA	Blood	6.0	50.0	1,168,839,451	92.36	319.0	4.79	0.236	71.36	0.977		0.7
+Barretts_18_EGAF00000560130	18	Barretts	St Thomas Hospital, London	M	61	T3N1M0	IIIA	Blood	10.0	80.0	1,011,091,609	92.88	282.0	4.71	0.24	60.85	0.976		0.3
+Barretts_19_EGAF00000530863	19	Barretts	Addenbrookes Hospital, Cambridge	M	75	T3N0M0	IIA	Blood		20.0	1,195,290,990	94.65	440.0	4.32	0.242	73.95	0.979		0.5
+Barretts_1_EGAF00000501981	1	Barretts	Addenbrookes Hospital, Cambridge	M	62	T2N0M0	IB	Blood		40.0	1,195,274,952	94.44	325.0	4.25	0.227	73.05	0.978		0.6
+Barretts_20_EGAF00000560125	20	Barretts	Edinburgh Royal Infirmary, Edinburgh	F	79	T3N1M0	IIIA	Blood			1,039,910,020	94.31	324.0	4.11	0.227	62.97	0.977		0.3
+Barretts_21_EGAF00000560126	21	Barretts	Royal Surrey County Hospital, Guildford	M	61	T1N0M0	IA	Blood	5.0	10.0	1,034,752,123	93.66	330.0	4.42	0.238	63.21	0.976		0.7
+Barretts_22_EGAF00000525458	22	Barretts	Royal Surrey County Hospital, Guildford	M	50	T3N3M0	IIIC	Blood	3.0	70.0	913,440,528	92.42	284.0	4.35	0.226	56.27	0.975		0.3
+Barretts_23_EGAF00000501983	23	Barretts	Addenbrookes Hospital, Cambridge	M	64	TxNxMx		Blood	2.0		1,408,290,504	94.53	311.0	4.31	0.221	86.5	0.979		0.3
+Barretts_2_EGAF00000525461	2	Barretts	St Thomas Hospital, London	F	55	T2N1M0	IIB	Blood	6.0	50.0	931,330,157	92.86	315.0	4.43	0.226	56.3	0.975		0.3
+Barretts_3_EGAF00000560128	3	Barretts	Addenbrookes Hospital, Cambridge	M	61	T3N2M1	IV	Blood		80.0	986,130,236	93.82	325.0	4.42	0.238	60.52	0.976		0.4
+Barretts_4_EGAF00000525457	4	Barretts	Royal Surrey County Hospital, Guildford	M	58	T3N1M0	IIIA	Blood	3.0	50.0	921,904,695	91.48	300.0	4.96	0.233	55.51	0.974		0.7
+Barretts_5_EGAF00000525462	5	Barretts	Gloucestershire Royal Hospital, Gloucester	M	64	T1N0M0	IA	Blood		22.0	880,868,154	92.23	294.0	4.49	0.237	54.01	0.974		0.8
+Barretts_6_EGAF00000560127	6	Barretts	Gloucestershire Royal Hospital, Gloucester	M	73	T3N1Mx		Blood		31.0	953,373,275	93.7	333.0	4.26	0.239	58.54	0.975		0.9
+Barretts_7_EGAF00000501982	7	Barretts	Addenbrookes Hospital, Cambridge	M	75	T3N0M0	IIA	Blood		20.0	1,199,786,687	94.48	308.0	4.47	0.235	71.75	0.978		0.7
+Barretts_8_EGAF00000525460	8	Barretts	Salford Royal Infirmary, Manchester	M	65	T2N0M0	IB	Blood	5.0	30.0	946,965,742	91.99	297.0	4.99	0.245	57.43	0.975		0.2
+Barretts_9_EGAF00000525201	9	Barretts	Addenbrookes Hospital, Cambridge	M	67	T1N0M0	IA	Blood	5.0	50.0	1,038,034,330	92.46	317.0	5.04	0.242	61.34	0.976		0.5
