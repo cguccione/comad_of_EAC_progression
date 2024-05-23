@@ -21,6 +21,15 @@ from qiime2.plugins import feature_table, diversity
 from qiime2.plugins.feature_table.visualizers import summarize
 from qiime2.plugins.diversity.visualizers import alpha_rarefaction
 
+from matplotlib.ticker import MultipleLocator
+
+#Import taxonomy (WOL)
+#tax_in = pd.read_csv('/projects/wol/qiyun/wol2/taxonomy/lineages.txt', sep='\t', header=None, index_col=0)
+tax_in = pd.read_csv('/Users/cguccion/Dropbox/Storage/HelpfulLabDocs/taxonomy_trees/WOL/lineages.txt', sep='\t', header=None, index_col=0)
+tax_dict = tax_in[1].to_dict() 
+
+pyrlori_name='k__Bacteria;p__Proteobacteria;c__Epsilonproteobacteria;o__Campylobacterales;f__Helicobacteraceae;g__Helicobacter;s__Helicobacter pylori'
+
 def calc_abdundance(biom_df, ignore_level):
     abundances = biom_df[biom_df.sum(1) > ignore_level]
     print ('dataset contains ' + str(abundances.shape[1]) + ' samples (sample_id, reads):')
@@ -80,22 +89,6 @@ def calc_mean_realtive_abudnace(abundances, n_samples, n_reads, rarefaction_leve
     
     occurr_freqs = occurr_freqs.sort_values(by=['mean_abundance'])
     display(occurr_freqs)
-    
-    
-    '''
-    #Move H.pylori to top row of dataframe
-    occurr_freqs['hp'] = range(1,len(occurr_freqs)+1)
-    occurr_freqs.loc['k__Bacteria;p__Proteobacteria;c__Epsilonproteobacteria;o__Campylobacterales;f__Helicobacteraceae;g__Helicobacter;s__Helicobacter pylori', 'hp']=0
-    occurr_freqs = occurr_freqs.sort_values('hp').drop('hp', axis = 1)
-    '''
-    
-    '''
-    if add_tax == True:
-        occurr_freqs = add_taxonomy(occurr_freqs)
-        
-    mean_abundance_list_fn = 'HutchBE_q' + biom_featureTable_fn.split('/')[1].split('_')[1] + '_' + biom_featureTable_fn.split('/')[2].split('.biom')[0] + '_' + time_date() + '_' + str(n_samples) + '_' + str(len(occurr_freqs)) + '_' + str(rarefaction_level)
-    return(occurr_freqs, mean_abundance_list_fn)
-    '''
 
     return(occurr_freqs)
 
@@ -130,18 +123,34 @@ def neufit_calc(occurr_freqs, n_reads, n_samples, print_non_netural=False, print
         
     return(beta_fit, r_square)
 
-def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_color = False, save_plot=True):
+def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_color = False, save_plot=True, sim_input=True, save_occur=True, from_simulation=False, non_color=False):
     pyplot.cla() #Clears previous plot - to avoid double keys
+    
+    font_size=18#5
 
     #Prepare results plot
-    pyplot.xlabel('Mean relative abundance across samples', fontsize=18)
+    pyplot.xlabel('Mean relative abundance across samples', fontsize=font_size)#18
     pyplot.xscale('log')
     x_range = np.logspace(log10(min(occurr_freqs['mean_abundance'])/10), 0, 1000)
     pyplot.xlim(min(x_range), max(x_range))
-    pyplot.xticks(fontsize=16)
-    pyplot.ylabel('Occurrence frequency in samples', fontsize=18)
+    pyplot.xticks(fontsize=font_size)#18
+    
+    '''
+    #pyplot.xticks([10**i for i in range(-6, 1)], fontsize=font_size)#18
+    #pyplot.gca().xaxis.set_minor_locator(MultipleLocator(0.1))
+    
+    major_ticks = [10**i for i in range(-6, 1)]
+    pyplot.xticks(major_ticks, fontsize=font_size)
+    
+    minor_ticks = []
+    for i in range(len(major_ticks) - 1):
+        minor_ticks.extend(np.linspace(major_ticks[i], major_ticks[i+1], num=9, endpoint=False)[1:])
+    pyplot.gca().xaxis.set_minor_locator(MultipleLocator())  # Ensure minor ticks are spaced evenly
+    '''
+
+    pyplot.ylabel('Occurrence frequency in samples', fontsize=font_size)#18
     pyplot.ylim(-0.05, 1.05)
-    pyplot.yticks(fontsize=16)
+    pyplot.yticks(fontsize=font_size)#16
 
     #>>Calculate lower and upper range
     lower, upper = proportion_confint(beta_cdf(x_range, n_reads, beta_fit.best_values['m'])*n_samples, n_samples, alpha=0.05, method='wilson')
@@ -152,6 +161,7 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
     pyplot.plot(x_range, lower, '--', lw=2, color='darkred')
     pyplot.plot(x_range, upper, '--', lw=2, color='darkred')
     pyplot.fill_between(x_range, lower, upper, color='lightgrey')
+    pyplot.plot([1e-4, 1e-4], [-0.05, 1.05], color='black', linestyle='-', linewidth=1)
     
     #Set Marker size
     markersize = 5
@@ -165,71 +175,120 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
 
     #Plot R^2 and m values
     #pyplot.text(0.05, 0.9, m, fontsize=16, transform=pyplot.gca().transAxes)
-    pyplot.text(0.05, 0.9, '$R^2 = ' + '{:1.2f}'.format(r_square) + '$', fontsize=16, transform=pyplot.gca().transAxes)
+    pyplot.text(0.05, 0.9, '$R^2 = ' + '{:1.2f}'.format(r_square) + '$', fontsize=font_size, transform=pyplot.gca().transAxes)
     
+    if 'full_taxonomy' not in occurr_freqs.columns:
+        occurr_freqs['full_taxonomy'] = occurr_freqs.index
+    
+    #print(occurr_freqs['full_taxonomy'].iloc[0])
+    print('-------')
+    
+    if 'p__' not in occurr_freqs['full_taxonomy'].iloc[0]:
+        #Add full taxonomy instead of just GOTU
+        occurr_freqs['full_taxonomy'] = occurr_freqs.index.map(lambda x: tax_dict.get(x, 'Unknown'))
+        occurr_freqs['full_taxonomy'] = occurr_freqs.index
+    
+    display(occurr_freqs)
+    
+    EC_color = False
+    color_key_out = 'full_taxonomy'
     #Adding phlya coloring
     for index, col in occurr_freqs.iterrows():
-        if 'p__Firmicutes' in index:
+        if not isinstance(col['full_taxonomy'], str):
+            continue
+        if 's__Helicobacter pylori' in col['full_taxonomy']:
+            HP_color = True
+            print(col)
+        if non_color == True:
+            continue
+        if 's__Escherichia coli' in col['full_taxonomy']:
+            #EC_color = True
+            continue
+        if 'p__Firmicutes' in col['full_taxonomy']:
             pyplot.plot(col['mean_abundance'], col['occurrence'], 'o', 
                 markersize=markersize, fillstyle='full', color='blue')
-        elif 'p__Proteobacteria' in index:
+        elif 'p__Proteobacteria' in col['full_taxonomy']:
             pyplot.plot(col['mean_abundance'], col['occurrence'], 'o', 
                 markersize=markersize, fillstyle='full', color='orange')
-        elif 'p__Fusobacteria' in index:
+        elif 'p__Fusobacteria' in col['full_taxonomy']:
             pyplot.plot(col['mean_abundance'], col['occurrence'], 'o', 
                 markersize=markersize, fillstyle='full', color='lightblue')
-        elif 'p__Actinobacteria' in index:
+        elif 'p__Actinobacteria' in col['full_taxonomy']:
             pyplot.plot(col['mean_abundance'], col['occurrence'], 'o', 
                 markersize=markersize, fillstyle='full', color='yellow')
-        elif 'p__Bacteroidetes' in index:
+        elif 'p__Bacteroidetes' in col['full_taxonomy']:
             pyplot.plot(col['mean_abundance'], col['occurrence'], 'o', 
                 markersize=markersize, fillstyle='full', color='grey')
     
     '''#Sam's data
     hp_occurr_freqs = occurr_freqs.loc['Helicobacter_pylori']
     pyplot.plot(hp_occurr_freqs['mean_abundance'], hp_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='magenta')
-    #'''
-    
-    '''#Ross-Innes
-    hp_occurr_freqs = occurr_freqs.loc['k__Bacteria;p__Proteobacteria;c__Epsilonproteobacteria;o__Campylobacterales;f__Helicobacteraceae;g__Helicobacter;s__Helicobacter pylori' , :]
-    pyplot.plot(hp_occurr_freqs['mean_abundance'], hp_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='magenta')'''
+    #'''    
     
     #Plot HP last so we can see coloring
-    HP_color = True
     if HP_color != False:
-        hp_occurr_freqs = occurr_freqs.loc['k__Bacteria;p__Proteobacteria;c__Epsilonproteobacteria;o__Campylobacterales;f__Helicobacteraceae;g__Helicobacter;s__Helicobacter pylori' , :]
+        hp_occurr_freqs = occurr_freqs[occurr_freqs['full_taxonomy'].str.contains('s__Helicobacter pylori', case=False)].copy()
         pyplot.plot(hp_occurr_freqs['mean_abundance'], hp_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='magenta')
+        
+    if EC_color != False:
+        ec_occurr_freqs = occurr_freqs[occurr_freqs['full_taxonomy'].str.contains('s__Escherichia coli', case=False)].copy()
+        pyplot.plot(ec_occurr_freqs['mean_abundance'], ec_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='green')
 
-    
     #Run standout microbes (optional)
     standout_microbes(occurr_freqs, fn)
     
     if save_plot != False:
-        #Save plot
-        pyplot.tight_layout()
-        pyplot.gcf().set_size_inches(7, 5)
-        output='/Users/cguccion/Dropbox/current_Summer23/ISMEJ_EsophModeling_Paper/Figures/comad_of_EAC_progression/outputs/neufit_plots/'
-        pyplot.savefig(output)
-        pyplot.savefig(output + fn + '.png')
-        pyplot.savefig(output + fn + '.pdf')
+        #pyplot.rcParams.update({'font.size': 5})
+        
+        if from_simulation == False:
+            #Save plot
+            pyplot.tight_layout()
+            pyplot.gcf().set_size_inches(6,4)#(1.4, 0.98)#(7, 5)
+            output='outputs/neufit_plots/'
+            pyplot.savefig(output)
+            pyplot.savefig(output + fn + '.png')
+            pyplot.savefig(output + fn + '.pdf')
+        else:
+            #Save plot
+            pyplot.tight_layout()
+            pyplot.gcf().set_size_inches(6,4)#(1.4, 0.98)#(7, 5)
+            output='outputs/simulation_neufit_plots/'
+        
+        #Save in svg format
+        pyplot.rcParams['font.family'] = 'sans-serif'
+        pyplot.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans']
+        pyplot.rcParams['svg.fonttype'] = 'none'  # render SVG text as text, not curves
+        pyplot.savefig(output + fn + '.svg')
         
     #Save df 
-    output='/Users/cguccion/Dropbox/current_Summer23/ISMEJ_EsophModeling_Paper/Figures/comad_of_EAC_progression/outputs/occur_freqs/'
-    occurr_freqs.to_csv(output + fn + '.tsv', sep='\t')
+    if save_occur != False:
+        output='outputs/occur_freqs/'
+        occurr_freqs.to_csv(output + fn + '.tsv', sep='\t')
+    
+    #Save simulation input df
+    if HP_color != False:
+        #Move H.pylori to top row of dataframe
+        occurr_freqs['hp'] = range(1,len(occurr_freqs)+1)
+        occurr_freqs.loc[pyrlori_name, 'hp']=0
+        occurr_freqs = occurr_freqs.sort_values('hp').drop('hp', axis = 1)
+    
+    if sim_input != False:
+        sim='outputs/simulation_input/'
+        occurr_freqs[['mean_abundance']].T.to_csv(sim + fn + '.csv', sep=',', index=False, header=False)
 
     pyplot.show()
     
 def standout_microbes(occurr_freqs, fn, threshold=0.1):
     #Create dataframe
     standoutMicrobes = pd.DataFrame(columns = ('Difference off Neutral Model',
-                                               'Taxonomy'))
+                                               'Taxonomy', 'full_taxonomy', 'mean_abundance', 'occurrence'))
     
     #Loop and find most non-neutral microbes based upon threshold
     row_count = 0
     for index, col in occurr_freqs.iterrows():
         diff = abs(col['occurrence'] - col['predicted_occurrence'])
         if diff > threshold:
-            standoutMicrobes.loc[row_count] = [diff, index]
+            standoutMicrobes.loc[row_count] = [diff, index, col['full_taxonomy'], col['mean_abundance'], col['occurrence']]
             row_count+=1
     
     standoutMicrobes = standoutMicrobes.sort_values(by =['Difference off Neutral Model'],
@@ -238,7 +297,7 @@ def standout_microbes(occurr_freqs, fn, threshold=0.1):
     #Display and export non-neutral microbes as csv
     print("\nTop NonNeutral Microbes")
     display(standoutMicrobes)
-    output='/Users/cguccion/Dropbox/current_Summer23/ISMEJ_EsophModeling_Paper/Figures/comad_of_EAC_progression/outputs/non_neutral/'
+    output='outputs/non_neutral/'
     standoutMicrobes.to_csv(output + fn + '.tsv', sep = '\t', index = False)
     
 def calculate_summary_table(fn):
@@ -265,7 +324,7 @@ def calculate_rarefaction(max_depth_rare, fn, steps=10):
                                                      metrics = {'observed_features'})
     return(alpha_rare)
     
-def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None):
+def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None, non_color=False):
     
     #Import biom table in pandas df/tsv form for current dataset
     biom_df = pd.read_csv('processed_data/pandas_df/' + fn + '.tsv', sep = '\t', index_col=0)
@@ -285,7 +344,11 @@ def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None):
     beta_fit, r_square = neufit_calc(occurr_freqs, n_reads, n_samples)
     
     #Neufit Plotting
-    neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn)#, True) #Save file here'experimental_outputs/Hutch_combined_WOL_neufit.png')
+    if non_color==True:
+        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn + '_nonColor', non_color=True)
+        
+    else:
+        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn)#, True) #Save file here'experimental_outputs/Hutch_combined_WOL_neufit.png')
 
     ''' Taxonomy file only for WOL rn .. I don't think this is used later but should check
     Will probs want to update this to [WOL, REP200... ect and then have all the files stored
