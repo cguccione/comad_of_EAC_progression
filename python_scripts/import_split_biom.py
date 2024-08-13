@@ -11,10 +11,13 @@ from qiime2.plugins import taxa
 from qiime2.plugins.feature_table.methods import rarefy
 import os
 
+#This is the list of icgc_donor_ids that are in the Ross-Innes data. These are the ones that specifically need to be removed in ICGC
 Ginny_donor = ['DO50326', 'DO234426', 'DO50436', 'DO50362', 'DO50381', 'DO234279', 'DO50331', 'DO234371', 'DO50318', 'DO50409',
               'DO234161', 'DO234232', 'DO234344', 'DO234406', 'DO50383', 'DO234226', 'DO50384', 'DO234408', 'DO50345', 
               'DO50445', 'DO50448', 'DO50374', 'DO50319']
 
+#This allows for the subsetting of JUST the samples in the physical figures of the paper (not all extra ones we have that are listed in the supplemental) 
+#This is used to subset the Ross-Innes paper 
 Ginny_oac_bo = ['LP6007591', 'LP6007592', 'LP6005690-DNA_H01', 'LP6005691-DNA_H01', 'LP6005500-DNA_D01', 'LP6005501-DNA_D01', 'LP6005690-DNA_D01', 'LP6005691-DNA_E01', 'LP6005690-DNA_A02', 'LP6005691-DNA_C01', 'LP6005500-DNA_C01', 'LP6005501-DNA_C01', 'LP6007594', 'LP6007595', 'LP6005690-DNA_G01', 'LP6005691-DNA_G01', 'LP6007404-DNA_A01', 'LP6007405-DNA_A01', 'LP6007520-DNA_A01', 'LP6007521-DNA_A01', 'LP6005334-DNA_A03', 'LP6005335-DNA_A01', 'LP6007409-DNA_A01', 'LP6007410-DNA_A01', 'LP6005690-DNA_F01', 'LP6005691-DNA_F01', 'LP6005500-DNA_E01', 'LP6005501-DNA_E01', 'LP6005690-DNA_C01', 'LP6005691-DNA_A01', 'LP6005690-DNA_F03', 'LP6005691-DNA_A02', 'LP6005690-DNA_B02', 'LP6005691-DNA_D01', 'LP6005500-DNA_F01', 'LP6005501-DNA_F01', 'LP2000104-DNA_A01', 'LP2000110-DNA_A01', 'LP6005500-DNA_A01', 'LP6005501-DNA_A01', 'LP6005500-DNA_B01', 'LP6005501-DNA_B01', 'LP6005690-DNA_E01', 'LP6005691-DNA_B01', 'LP6007597', 'LP6007598']
 
 bad_microbes_list = ['k__Bacteria;p__Bacteroidetes;c__Cytophagia;o__Cytophagales;f__Hymenobacteraceae;g__Hymenobacter;s__Hymenobacter sp. IS2118',
@@ -37,20 +40,72 @@ bad_microbes_list = ['k__Bacteria;p__Bacteroidetes;c__Cytophagia;o__Cytophagales
                      'k__Bacteria;p__Acidobacteria;c__Acidobacteriia;o__Acidobacteriales;f__Acidobacteriaceae;g__Silvibacterium;s__Silvibacterium bohemicum',
                      'k__Bacteria;p__Firmicutes;c__Bacilli;o__Bacillales;f__Bacillaceae;g__Lysinibacillus;s__Lysinibacillus xylanilyticus']
 
-def filter_zebra(df, zebra):
+#Strangly high gotus in ICGC run2
+bad_gotu = ['G001408515', 'G001458175', 'G000601485', 'G000824785', 'G001748365', 'G001404055', 'G001049355', 'G000824825', 'G001458375', 'G001748465', 'G001458355', 'G000751555', 'G001049735', 'G000349545', 'G001458315', 'G000784355', 'G000310185', 'G001458335', 'G000724545', 'G900095615', 'G001261715', 'G001404515', 'G001403735', 'G000338055', 'G001458215', 'G000827595', 'G000613185', 'G000611675', 'G000333235', 'G001403795', 'G001258055', 'G000410875', 'G000582705', 'G000443165', 'G001282945', 'G001417815', 'G000497205', 'G000160455', 'G001458435', 'G000829675', 'G001283065', 'G000335475', 'G001458395', 'G001458415', 'G001273835', 'G001373415', 'G000417585']
+
+#Same as above (bad_gotu) but with species instead of genome level
+bad_species = ['k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Jannaschia;s__Jannaschia seosinensis',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Shimia;s__Shimia marina',
+ 'k__Bacteria;p__Proteobacteria;c__Deltaproteobacteria;o__Myxococcales;f__Polyangiaceae;g__Chondromyces;s__Chondromyces apiculatus',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhizobiales;f__Phyllobacteriaceae;g__Mesorhizobium;s__Mesorhizobium plurifarium',
+ 'k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Clostridiales Family XII. Incertae Sedis;g__Fusibacter;s__Fusibacter sp. 3D3',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Labrenzia;s__Labrenzia alba',
+ 'k__Bacteria;p__Actinobacteria;c__Actinobacteria;o__Corynebacteriales;f__Mycobacteriaceae;g__Mycobacterium;s__Mycobacterium aurum',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhizobiales;f__Phyllobacteriaceae;g__Mesorhizobium;s__Mesorhizobium sp. ORS3324',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Tropicibacter;s__Tropicibacter naphthalenivorans',
+ 'k__Bacteria;p__Bacteroidetes;c__Flavobacteriia;o__Flavobacteriales;f__Flavobacteriaceae;g__Arenibacter;s__Arenibacter sp. C-21',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Thalassobius;s__Thalassobius gelatinovorus',
+ 'k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Clostridiaceae;g__Anaerosalibacter;s__Anaerosalibacter massiliensis',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Nereida;s__Nereida ignava',
+ 'k__Bacteria;p__Actinobacteria;c__Actinobacteria;o__Micrococcales;f__Microbacteriaceae;g__Leucobacter;s__Leucobacter sp. UCD-THU',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Thalassobacter;s__Thalassobacter stenotrophicus',
+ 'k__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Methanomicrobiales;f__Methanomicrobiaceae;g__Methanolacinia;s__Methanolacinia paynteri',
+ 'k__Bacteria;p__Proteobacteria;c__Betaproteobacteria;o__Rhodocyclales;f__Rhodocyclaceae;g__Thauera;s__Thauera aminoaromatica',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Thalassobius;s__Thalassobius sp. CECT 5113',
+ 'k__Bacteria;p__Bacteroidetes;c__Saprospiria;o__Saprospirales;f__Saprospiraceae;g__Aureispira;s__Aureispira sp. CCB-QB1',
+ 'k__Bacteria;p__Firmicutes;c__Tissierellia;o__Tissierellales;f__;g__Sporanaerobacter;s__Sporanaerobacter sp. PP17-6a',
+ 'k__Bacteria;p__Bacteroidetes;c__Bacteroidia;o__Bacteroidales;f__Porphyromonadaceae;g__Dysgonomonas;s__Dysgonomonas sp. HGC4',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Labrenzia;s__Labrenzia alba',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Jannaschia;s__Jannaschia rubra',
+ 'k__Bacteria;p__Actinobacteria;c__Actinobacteria;o__Micrococcales;f__Dermabacteraceae;g__Brachybacterium;s__Brachybacterium muris',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Phaeobacter;s__Phaeobacter sp. CECT 7735',
+ 'k__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Pasteurellales;f__Pasteurellaceae;g__Necropsobacter;s__Necropsobacter massiliensis',
+ 'k__Bacteria;p__Actinobacteria;c__Actinobacteria;o__Corynebacteriales;f__Mycobacteriaceae;g__Mycobacterium;s__Mycobacterium cosmeticum',
+ 'k__Bacteria;p__Bacteroidetes;c__Flavobacteriia;o__Flavobacteriales;f__Flavobacteriaceae;g__Flavobacterium;s__Flavobacterium succinicans',
+ 'k__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Alteromonadales;f__Pseudoalteromonadaceae;g__Pseudoalteromonas;s__Pseudoalteromonas luteoviolacea',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Jannaschia;s__Jannaschia donghaensis',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Nautella;s__Nautella italica',
+ 'k__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Pseudomonadales;f__Pseudomonadaceae;g__Pseudomonas;s__Pseudomonas pelagia',
+ 'k__Bacteria;p__Actinobacteria;c__Actinobacteria;o__Micrococcales;f__Microbacteriaceae;g__Microbacterium;s__Microbacterium sp. C448',
+ 'k__Bacteria;p__Proteobacteria;c__Betaproteobacteria;o__Rhodocyclales;f__Rhodocyclaceae;g__Thauera;s__Thauera terpenica',
+ 'k__Bacteria;p__Proteobacteria;c__Epsilonproteobacteria;o__Campylobacterales;f__Helicobacteraceae;g__Helicobacter;s__Helicobacter ailurogastricus',
+ 'k__Bacteria;p__Actinobacteria;c__Actinobacteria;o__Bifidobacteriales;f__Bifidobacteriaceae;g__Bifidobacterium;s__Bifidobacterium aesculapii',
+ 'k__Bacteria;p__Actinobacteria;c__Actinobacteria;o__Pseudonocardiales;f__Pseudonocardiaceae;g__Saccharopolyspora;s__Saccharopolyspora rectivirgula',
+ 'k__Bacteria;p__Synergistetes;c__Synergistia;o__Synergistales;f__Synergistaceae;g__Acetomicrobium;s__Acetomicrobium hydrogeniformans',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Thalassobius;s__Thalassobius mediterraneus',
+ 'k__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Pseudomonadales;f__Moraxellaceae;g__Acinetobacter;s__Acinetobacter rudis',
+ 'k__Bacteria;p__Proteobacteria;c__Epsilonproteobacteria;o__Campylobacterales;f__Helicobacteraceae;g__Helicobacter;s__Helicobacter heilmannii',
+ 'k__Bacteria;p__Proteobacteria;c__Deltaproteobacteria;o__Myxococcales;f__Archangiaceae;g__Cystobacter;s__Cystobacter fuscus',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Leisingera;s__Leisingera aquaemixtae',
+ 'k__Bacteria;p__Proteobacteria;c__Alphaproteobacteria;o__Rhodobacterales;f__Rhodobacteraceae;g__Tropicibacter;s__Tropicibacter multivorans',
+ 'k__Bacteria;p__Chlamydiae;c__Chlamydiia;o__Chlamydiales;f__Chlamydiaceae;g__Chlamydia;s__Chlamydia psittaci', 'k__Bacteria;p__Actinobacteria;c__Actinobacteria;o__Micrococcales;f__Microbacteriaceae;g__Leucobacter;s__Leucobacter celer', 'k__Bacteria;p__Firmicutes;c__Bacilli;o__Bacillales;f__Paenibacillaceae;g__Paenibacillus;s__Paenibacillus sp. FF9']
+
+def filter_zebra(df, zebra, zebra_threshold):
     if zebra == 'Ross_WOL':
         zebra_df = pd.read_csv(os.getcwd() + '/zebra/ross_innes_wol_zebra_out.txt', sep ='\t')
     elif zebra == 'BE_WOL':
         zebra_df = pd.read_csv(os.getcwd() + '/zebra/BE_wol_zebra_out.txt', sep ='\t')
-    elif zebra == 'EAC_WOL':
-        zebra_df = pd.read_csv(os.getcwd() + '/zebra/ICGC_wol_zebra_out.txt', sep = '\t')
+    elif zebra == 'EAC_ICGC_old':
+        zebra_df = pd.read_csv(os.getcwd() + '/zebra/prior_2024/ICGC_wol_zebra_out.txt', sep = '\t')
     elif zebra == 'EAC_TCGA_WOL':
         zebra_df = pd.read_csv(os.getcwd() + '/zebra/TCGA_EAC_wol_zebra_out.txt', sep = '\t')
     elif zebra == 'norm_GERD_WOL':
         zebra_df = pd.read_csv(os.getcwd() + '/zebra/mixed_Esoph_wol_zebra_out.txt', sep = '\t')
     
+    print('Filtering zebra to ' + str(zebra_threshold))
+    
     #Subset zebra to at least 1% coverage
-    zebra_df = zebra_df[zebra_df['coverage_ratio'] >= 0.01]
+    zebra_df = zebra_df[zebra_df['coverage_ratio'] >= zebra_threshold]
     
     #Subset biom with zebra
     df = df[df.index.isin(zebra_df['gotu'])]
@@ -73,6 +128,7 @@ def species_from_zebra(custom_qza, export_filepath, fn, meta):
     
     #Change fn from genome to species
     fn = fn.replace('genome', 'species')
+    fn = fn.replace('none', 'species')
     
     #Export metadata
     meta_filename = export_filepath + 'metadata/' +'metadata_' + fn + '.tsv'
@@ -90,7 +146,36 @@ def species_from_zebra(custom_qza, export_filepath, fn, meta):
     
     return()
 
-def data_split_helper(biom, meta, fn, zebra=False, rare_level=25000, zebra_rare=False, remove_bad_microbes=False):
+def remove_reagents(df):
+    bad_reagents = pd.read_csv('reagent_lab_contam_list.tsv', delimiter='\t')
+    bad_r_list = bad_reagents['genus'].tolist()[1:]
+    
+    # Create a boolean mask using str.contains
+    mask = df.index.to_series().apply(lambda x: any(substring in x for substring in bad_r_list))
+
+    # Filter the DataFrame to exclude rows containing the strings
+    df_new = df[~mask]
+
+    return(df_new)
+
+def keep_human(df):
+    human_asso = pd.read_csv('human_asso_microbes.txt', delimiter='\t')
+    human_asso = human_asso['species'].tolist()[1:]
+    
+    #display(df)
+    
+    # Create a boolean mask using str.contains
+    mask = df.index.to_series().apply(lambda x: any(substring in x for substring in human_asso))
+
+    # Filter the DataFrame to exclude rows containing the strings
+    df_new = df[mask]
+    
+    #display(df_new)
+
+    return(df_new)
+    
+
+def data_split_helper(biom, meta, fn, zebra=False, rare_level=25000, zebra_threshold=0.01, zebra_rare=False, remove_bad_microbes=False, remove_reag=False, keep_hu=False, remove_bad_gotu=False):
     'Given metadata + biom, create all datatypes needed'
     
     #Create custom df of biom table (just selected disease type)
@@ -100,12 +185,32 @@ def data_split_helper(biom, meta, fn, zebra=False, rare_level=25000, zebra_rare=
     if remove_bad_microbes == True:
         #Remove 'bad' microbes
         df = df.drop(bad_microbes_list)
+        
+    if remove_bad_gotu == True:
+        #Remove 'bad' gotus that only apppear in high abudances in second ICGC run
+        if 'species' in fn:
+            df = df.drop(bad_species, errors='ignore')
+        else:
+            df = df.drop(bad_gotu)
     
     print('Total number of samples in', fn, ' = ', df.shape[1])
     
+    #Removes any microbes in the reagents list
+    if remove_reag == True:
+        df = remove_reagents(df)
+    
+    #Keeps only microbes which are in the human assoicated list
+    if keep_hu == True:
+        df = keep_human(df)
+        
+    if zebra != False:
+        print('Zebra - non-Rare')
+        df = filter_zebra(df, zebra, zebra_threshold)
+        
     #Create custom qza table (just selected disease type)
     custom_qza = Artifact.import_data("FeatureTable[Frequency]", df.T)
-    
+        
+    '''
     #Create rarified table off qza table
     rare_qza, = rarefy(table=custom_qza, sampling_depth = rare_level)
     print(rare_qza)
@@ -113,14 +218,12 @@ def data_split_helper(biom, meta, fn, zebra=False, rare_level=25000, zebra_rare=
     #Convert rare table into pandas df
     rare_df = rare_qza.view(pd.DataFrame)
     
-    if zebra != False:
-        print('Zebra - non-Rare')
-        df = filter_zebra(df, zebra)
-        
+    '''    
+
     if zebra_rare != False:
         print('Zebra - Rare')
-        rare_df = filter_zebra(rare_df, zebra_rare)
-
+        rare_df = filter_zebra(rare_df, zebra_rare, zebra_threshold)
+    
     #Export everything for future use
     export_filepath = os.getcwd() + '/processed_data/'
     
@@ -141,7 +244,10 @@ def data_split_helper(biom, meta, fn, zebra=False, rare_level=25000, zebra_rare=
     if zebra != False:
         #Convert from genome to species and output that as well
         species_from_zebra(custom_qza, export_filepath, fn, meta)
+    
+    print('DF len', len(df))
         
+    '''
     ###------------ Save Rare Info ###------------
     
     #Export metadata -- I know this is the same but easier if they all follow a pattern
@@ -162,6 +268,7 @@ def data_split_helper(biom, meta, fn, zebra=False, rare_level=25000, zebra_rare=
         #Convert from genome to species and output that as well
         t_fn = fn + '_r' + str(rare_level)
         species_from_zebra(rare_qza, export_filepath, t_fn, meta)
+    '''
     
     return()
 
@@ -233,7 +340,7 @@ def Sam_BE_data_split(progression, timepoint, csv, fn, counts=False):
     data_split_helper_csv(meta, progression, timepoint, csv, fn, counts=counts) 
     
     
-def be_data_split(progression, timepoint, biom, fn, zebra=False, exact_pairs= False, trim=False):
+def be_data_split(progression, timepoint, biom, fn, zebra=False, exact_pairs= False, trim=False, remove_reag=False, keep_hu=False, remove_bad_gotu=False):
     '''To split biom table from 14598, into various timepoint/progression types'''
     
     #Import metadata from Qiita
@@ -257,12 +364,12 @@ def be_data_split(progression, timepoint, biom, fn, zebra=False, exact_pairs= Fa
     display(meta_custom[:3])
     
     #Create all files based on biom/meta_custom
-    data_split_helper(biom, meta_custom, fn, zebra=zebra)
+    data_split_helper(biom, meta_custom, fn, zebra=zebra, remove_reag=remove_reag, keep_hu=keep_hu, remove_bad_gotu=remove_bad_gotu)
     
     return()
     
 
-def gerd_normal_data_split(disease_type, biom, fn, zebra=False, trim=False, shotgun=True):
+def gerd_normal_data_split(disease_type, biom, fn, zebra=False, trim=False, shotgun=True, remove_reag=False, keep_hu=False, remove_bad_gotu=False):
     '''To split biom table from 14458, into a normal and gerd biom table'''
     
     #Import metadata from Qiita
@@ -279,15 +386,17 @@ def gerd_normal_data_split(disease_type, biom, fn, zebra=False, trim=False, shot
     display(meta_custom[:3])
     
     #Create all files based on biom/meta_custom
-    data_split_helper(biom, meta_custom, fn, zebra=zebra)
+    data_split_helper(biom, meta_custom, fn, zebra=zebra, remove_reag=remove_reag, keep_hu=keep_hu, remove_bad_gotu=remove_bad_gotu)
     
     return()
 
-def eac_14857_data_split(biom, fn, trim=False, remove_bad_microbes=False, Ginny_list=False): 
+def eac_14857_data_split(biom, fn, trim=False, remove_bad_microbes=False, Ginny_list=True, remove_reag=False, keep_hu=False, zebra=False, remove_bad_gotu=False, zebra_threshold=0.01): 
+    ''' Correct ICGC dataset'''
     
     #Import metadata from Qiita
     meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14857_EAC_ICGC/sample_information_from_ESAD_ICGC_14857_prep_13977.txt', sep = '\t')
     
+    #This removes the samples that are in both the ICGC dataset and in Ginny's ... typically we would want these removed
     if Ginny_list == True:
         meta = meta[~meta.isin(Ginny_donor).any(axis=1)]
     
@@ -297,14 +406,49 @@ def eac_14857_data_split(biom, fn, trim=False, remove_bad_microbes=False, Ginny_
     display(meta[:3])
     
     #Create all files based on biom/meta_custom
-    data_split_helper(biom, meta, fn, zebra=False, remove_bad_microbes=remove_bad_microbes)
+    data_split_helper(biom, meta, fn, zebra=zebra, zebra_threshold=zebra_threshold, remove_bad_microbes=remove_bad_microbes, remove_reag=remove_reag, keep_hu=keep_hu, remove_bad_gotu=remove_bad_gotu)
    
     return()
 
-def eac_data_split(biom, fn, zebra=False, trim=False, stage=False): 
+def normal_be_eac_data_split(disease_type, biom, fn, exact_pairs=False, zebra=False, remove_bad_microbes=False, Ginny_list=True, remove_reag=False, keep_hu=False, remove_bad_gotu=False):
+    '''To split biom table from TBD, into a BE, EAC biom table from Ross-Innes'''
+    #exact pairs just takes a single BE and EAC sample from each patient
+    
+    #Import metadata from Qiita -- We have updated the metadata to more accurate since Maria updated it  
+    #meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiitaTBD_Norm_BE_EAC/qiita_sample_info.txt', sep = '\t')
+    meta = pd.read_csv(os.getcwd() + '/compare_rossICGC/corrected_meta.tsv', sep = '\t')
+    
+    #Remove all the samples from the 'AHM1051'
+    meta = meta[(meta.Patient != 'AHM1051')]
+    
+    #Create custom metadata for disease of intrest (just selected disease type)
+    meta_custom = meta[(meta.Sample_type.isin(disease_type))]
+    
+    if exact_pairs == True:
+        new_meta = pd.DataFrame(columns = meta_custom.columns)
+        for index, row in meta_custom.iterrows():
+            if any((new_meta['Patient'] == row['Patient']) & (new_meta['Sample_type'] == row['Sample_type'])) == False:
+                new_meta.loc[len(new_meta)] = row
+        meta_custom = new_meta
+    
+    #I think this is subsetting to JUST the samples that are acutally in the Ross-Innes paper ... there was a large amount of extra samples they provided so it removes those
+    if Ginny_list == True:
+        meta_custom = meta_custom[meta_custom.isin(Ginny_oac_bo).any(axis=1)]
+    
+    meta_custom = meta_custom.reset_index(drop = True)
+    display(meta_custom[:3])
+    
+    #Create all files based on biom/meta_custom
+    data_split_helper(biom, meta_custom, fn, zebra=zebra, remove_bad_microbes=remove_bad_microbes, remove_reag=remove_reag, keep_hu=keep_hu, remove_bad_gotu=remove_bad_gotu)
+    
+    return()
+
+
+'''
+def eac_14521_data_split(biom, fn, zebra=False, trim=False, stage=False, Ginny_list=False, zebra_threshold=0.01): 
     
     #Import metadata from Qiita
-    meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14521_EAC_ICGC/sample_info_14521_20220509-203030.txt', sep = '\t')
+    meta = pd.read_csv(os.getcwd() + '/qiita_downloads/OLD_qiita14521_EAC_ICGC/sample_info_14521_20220509-203030.txt', sep = '\t')
     
     if stage!= False:
         meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiita14521_EAC_ICGC/sample_info_14521_20220509-203030_extended.txt',
@@ -314,6 +458,9 @@ def eac_data_split(biom, fn, zebra=False, trim=False, stage=False):
         elif stage == 'high': #3
             meta = meta[(meta.tumour_grade.isin([3]))]  
         meta = meta.reset_index(drop = True)
+        
+    if Ginny_list == True:
+        meta = meta[~meta.isin(Ginny_donor).any(axis=1)]
     
     if trim!= False:
         meta = meta.sample(trim)
@@ -321,7 +468,7 @@ def eac_data_split(biom, fn, zebra=False, trim=False, stage=False):
     display(meta[:3])
     
     #Create all files based on biom/meta_custom
-    data_split_helper(biom, meta, fn, zebra=zebra)
+    data_split_helper(biom, meta, fn, zebra=zebra, zebra_threshold=zebra_threshold)
    
     return()
 
@@ -340,42 +487,10 @@ def eac_tcga_data_split(biom, fn, zebra=False, trim=False):
    
     return()
 
-def normal_be_eac_data_split(disease_type, biom, fn, exact_pairs=False, zebra=False, remove_bad_microbes=False, Ginny_list=False):
-    '''To split biom table from TBD, into a normal, BE, EAC biom table'''
-    #exact pairs just takes a single BE and EAC sample from each patient
-    
-    #Import metadata from Qiita
-    #meta = pd.read_csv(os.getcwd() + '/qiita_downloads/qiitaTBD_Norm_BE_EAC/qiita_sample_info.txt', sep = '\t')
-    meta = pd.read_csv(os.getcwd() + '/compare_rossICGC/corrected_meta.tsv', sep = '\t')
-    
-    #Remove all the samples from the 'AHM1051'
-    meta = meta[(meta.Patient != 'AHM1051')]
-    
-    #Create custom metadata for disease of intrest (just selected disease type)
-    meta_custom = meta[(meta.Sample_type.isin(disease_type))]
-    
-    if exact_pairs == True:
-        new_meta = pd.DataFrame(columns = meta_custom.columns)
-        for index, row in meta_custom.iterrows():
-            if any((new_meta['Patient'] == row['Patient']) & (new_meta['Sample_type'] == row['Sample_type'])) == False:
-                new_meta.loc[len(new_meta)] = row
-        meta_custom = new_meta
-        
-    if Ginny_list == True:
-        meta_custom = meta_custom[meta_custom.isin(Ginny_oac_bo).any(axis=1)]
-    
-    meta_custom = meta_custom.reset_index(drop = True)
-    display(meta_custom[:3])
-    
-    #Create all files based on biom/meta_custom
-    data_split_helper(biom, meta_custom, fn, zebra=zebra, remove_bad_microbes=remove_bad_microbes)
-    
-    return()
-
 ############################ AIM 3 ########################
 
 def HCC_data_split(tumor_type, host_sample_type, biom, fn):
-    '''Used for HCC Amir Aim 3'''
+    #Used for HCC Amir Aim 3
     
     #Import metadata from Qiita
     meta = pd.read_csv(os.getcwd() + '/qiita_downloads/Aim3/qiita13756_HCC/qiita_13756_short_wblanks.csv', sep = ',')
@@ -393,7 +508,7 @@ def HCC_data_split(tumor_type, host_sample_type, biom, fn):
     return()
 
 def TCGA_subset_data_split(disease_type, biom, fn):
-    '''Used for TCGA subset with just colon/liver Aim 3'''
+    #Used for TCGA subset with just colon/liver Aim 3
     
     #Import metadata from Qiita
     meta = pd.read_csv(os.getcwd() + '/qiita_downloads/Aim3/qiita15027_TCGA_colonLiver/sample_information_from_prep_14766.tsv', sep = '\t')
@@ -407,3 +522,5 @@ def TCGA_subset_data_split(disease_type, biom, fn):
     data_split_helper(biom, meta_custom, fn)
     
     return()
+    
+'''

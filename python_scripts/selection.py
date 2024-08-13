@@ -29,7 +29,7 @@ def selection_plot(selection_output, save_figure=False, color_HP=True, color_t15
     selection_fn = 'outputs/simulation_output/' + selection_output + '.npz'
     
     npz_data = read_npz(selection_fn)
-    
+
     #Extract useful info out of npz_data
     n_reads = int(npz_data['N'])
     n_samples = int(npz_data['S'])

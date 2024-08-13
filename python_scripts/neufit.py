@@ -30,10 +30,16 @@ tax_dict = tax_in[1].to_dict()
 
 pyrlori_name='k__Bacteria;p__Proteobacteria;c__Epsilonproteobacteria;o__Campylobacterales;f__Helicobacteraceae;g__Helicobacter;s__Helicobacter pylori'
 
+#Strangly high gotus in ICGC run2
+bad_gotu = ['G001408515', 'G001458175', 'G000601485', 'G000824785', 'G001748365', 'G001404055', 'G001049355', 'G000824825', 'G001458375', 'G001748465', 'G001458355', 'G000751555', 'G001049735', 'G000349545', 'G001458315', 'G000784355', 'G000310185', 'G001458335', 'G000724545', 'G900095615', 'G001261715', 'G001404515', 'G001403735', 'G000338055', 'G001458215', 'G000827595', 'G000613185', 'G000611675', 'G000333235', 'G001403795', 'G001258055', 'G000410875', 'G000582705', 'G000443165', 'G001282945', 'G001417815', 'G000497205', 'G000160455', 'G001458435', 'G000829675', 'G001283065', 'G000335475', 'G001458395', 'G001458415']
+#G001273835, G001373415, G000417585
+
 def calc_abdundance(biom_df, ignore_level):
     abundances = biom_df[biom_df.sum(1) > ignore_level]
     print ('dataset contains ' + str(abundances.shape[1]) + ' samples (sample_id, reads):')
     print (abundances.sum(0), '\n')
+    print(abundances.sum(0)[:50])
+    print(abundances.sum(0)[:51-80])
     return(abundances)
 
 def subsample(counts, depth):
@@ -67,6 +73,14 @@ def rarefraction(biom_df, ignore_level, rarefaction_level):
     n_reads = rarefaction_level
 
     print ('\nfitting neutral expectation to dataset with ' + str(n_samples) + ' samples and ' + str(n_otus) + ' otus')
+    
+    '''
+    print('abundances')
+    display(abundances)
+    abundances.to_csv('tmp.tsv', sep='\t')
+    temp_df = abundances.loc['k__Bacteria;p__Bacteroidetes;c__Cytophagia;o__Cytophagales;f__Hymenobacteraceae;g__Hymenobacter;s__Hymenobacter sp. IS2118']
+    display(temp_df[:50])
+    '''
     
     return(abundances, n_samples, n_reads)
 
@@ -219,6 +233,10 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
         elif 'p__Bacteroidetes' in col['full_taxonomy']:
             pyplot.plot(col['mean_abundance'], col['occurrence'], 'o', 
                 markersize=markersize, fillstyle='full', color='grey')
+        elif col['full_taxonomy'] in bad_gotu:
+            pyplot.plot(col['mean_abundance'], col['occurrence'], 'o', 
+                markersize=markersize, fillstyle='full', color='yellow')
+            
     
     '''#Sam's data
     hp_occurr_freqs = occurr_freqs.loc['Helicobacter_pylori']
@@ -233,6 +251,8 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
     if EC_color != False:
         ec_occurr_freqs = occurr_freqs[occurr_freqs['full_taxonomy'].str.contains('s__Escherichia coli', case=False)].copy()
         pyplot.plot(ec_occurr_freqs['mean_abundance'], ec_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='green')
+        
+        
 
     #Run standout microbes (optional)
     standout_microbes(occurr_freqs, fn)
@@ -253,6 +273,8 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
             pyplot.tight_layout()
             pyplot.gcf().set_size_inches(6,4)#(1.4, 0.98)#(7, 5)
             output='outputs/simulation_neufit_plots/'
+            pyplot.savefig(output + fn + '.png')
+            pyplot.savefig(output + fn + '.pdf')
         
         #Save in svg format
         pyplot.rcParams['font.family'] = 'sans-serif'
@@ -322,6 +344,11 @@ def calculate_rarefaction(max_depth_rare, fn, steps=10):
                                                      metadata = meta,
                                                      steps = steps,
                                                      metrics = {'observed_features'})
+    
+    print('ft is here')
+    display(ft)
+    print('')
+    
     return(alpha_rare)
     
 def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None, non_color=False):
@@ -345,10 +372,10 @@ def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None, non_color
     
     #Neufit Plotting
     if non_color==True:
-        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn + '_nonColor', non_color=True)
+        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn + '_nonColor' + '_r' + str(rarefaction_level), non_color=True)
         
     else:
-        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn)#, True) #Save file here'experimental_outputs/Hutch_combined_WOL_neufit.png')
+        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn + '_r' + str(rarefaction_level))#, True) #Save file here'experimental_outputs/Hutch_combined_WOL_neufit.png')
 
     ''' Taxonomy file only for WOL rn .. I don't think this is used later but should check
     Will probs want to update this to [WOL, REP200... ect and then have all the files stored
