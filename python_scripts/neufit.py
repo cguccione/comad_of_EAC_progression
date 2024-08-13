@@ -255,7 +255,7 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
         
 
     #Run standout microbes (optional)
-    standout_microbes(occurr_freqs, fn)
+    standout_microbes(occurr_freqs, fn, save_plot=save_plot)
     
     if save_plot != False:
         #pyplot.rcParams.update({'font.size': 5})
@@ -300,7 +300,7 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
 
     pyplot.show()
     
-def standout_microbes(occurr_freqs, fn, threshold=0.1):
+def standout_microbes(occurr_freqs, fn, save_plot, threshold=0.1):
     #Create dataframe
     standoutMicrobes = pd.DataFrame(columns = ('Difference off Neutral Model',
                                                'Taxonomy', 'full_taxonomy', 'mean_abundance', 'occurrence'))
@@ -320,7 +320,9 @@ def standout_microbes(occurr_freqs, fn, threshold=0.1):
     print("\nTop NonNeutral Microbes")
     display(standoutMicrobes)
     output='outputs/non_neutral/'
-    standoutMicrobes.to_csv(output + fn + '.tsv', sep = '\t', index = False)
+    
+    if save_plot != False:
+        standoutMicrobes.to_csv(output + fn + '.tsv', sep = '\t', index = False)
     
 def calculate_summary_table(fn):
     
@@ -351,7 +353,7 @@ def calculate_rarefaction(max_depth_rare, fn, steps=10):
     
     return(alpha_rare)
     
-def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None, non_color=False):
+def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None, non_color=False, save=False):
     
     #Import biom table in pandas df/tsv form for current dataset
     biom_df = pd.read_csv('processed_data/pandas_df/' + fn + '.tsv', sep = '\t', index_col=0)
@@ -372,10 +374,10 @@ def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None, non_color
     
     #Neufit Plotting
     if non_color==True:
-        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn + '_nonColor' + '_r' + str(rarefaction_level), non_color=True)
+        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn + '_nonColor' + '_r' + str(rarefaction_level), non_color=True, save_plot=save, sim_input=save, save_occur=save)
         
     else:
-        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn + '_r' + str(rarefaction_level))#, True) #Save file here'experimental_outputs/Hutch_combined_WOL_neufit.png')
+        neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn + '_r' + str(rarefaction_level), save_plot=save, sim_input=save, save_occur=save)#, True) #Save file here'experimental_outputs/Hutch_combined_WOL_neufit.png')
 
     ''' Taxonomy file only for WOL rn .. I don't think this is used later but should check
     Will probs want to update this to [WOL, REP200... ect and then have all the files stored
