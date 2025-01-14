@@ -204,6 +204,7 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
     
     display(occurr_freqs)
     
+    HP_color_SAM = False
     EC_color = False
     color_key_out = 'full_taxonomy'
     #Adding phlya coloring
@@ -212,6 +213,9 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
             continue
         if 's__Helicobacter pylori' in col['full_taxonomy']:
             HP_color = True
+            print(col)
+        if 'Helicobacter_pylori' in col['full_taxonomy']:
+            HP_color_SAM = True
             print(col)
         if non_color == True:
             continue
@@ -238,10 +242,10 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
                 markersize=markersize, fillstyle='full', color='yellow')
             
     
-    '''#Sam's data
-    hp_occurr_freqs = occurr_freqs.loc['Helicobacter_pylori']
-    pyplot.plot(hp_occurr_freqs['mean_abundance'], hp_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='magenta')
-    #'''    
+    #Plot SAM HP coloring
+    if HP_color_SAM != False:
+        hp_occurr_freqs = occurr_freqs[occurr_freqs['full_taxonomy'].str.contains('Helicobacter_pylori', case=False)].copy()
+        pyplot.plot(hp_occurr_freqs['mean_abundance'], hp_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='magenta')    
     
     #Plot HP last so we can see coloring
     if HP_color != False:
@@ -251,8 +255,6 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
     if EC_color != False:
         ec_occurr_freqs = occurr_freqs[occurr_freqs['full_taxonomy'].str.contains('s__Escherichia coli', case=False)].copy()
         pyplot.plot(ec_occurr_freqs['mean_abundance'], ec_occurr_freqs['occurrence'], 'o', markersize=markersize, fillstyle='full', color='green')
-        
-        
 
     #Run standout microbes (optional)
     standout_microbes(occurr_freqs, fn, save_plot=save_plot)
@@ -266,26 +268,26 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
             pyplot.gcf().set_size_inches(6,4)#(1.4, 0.98)#(7, 5)
             output='outputs/neufit_plots/'
             pyplot.savefig(output)
-            pyplot.savefig(output + fn + '.png')
-            pyplot.savefig(output + fn + '.pdf')
+            pyplot.savefig(output + save_plot + '.png')
+            pyplot.savefig(output + save_plot + '.pdf')
         else:
             #Save plot
             pyplot.tight_layout()
             pyplot.gcf().set_size_inches(6,4)#(1.4, 0.98)#(7, 5)
             output='outputs/simulation_neufit_plots/'
-            pyplot.savefig(output + fn + '.png')
-            pyplot.savefig(output + fn + '.pdf')
+            pyplot.savefig(output + save_plot + '.png')
+            pyplot.savefig(output + save_plot + '.pdf')
         
         #Save in svg format
         pyplot.rcParams['font.family'] = 'sans-serif'
         pyplot.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans']
         pyplot.rcParams['svg.fonttype'] = 'none'  # render SVG text as text, not curves
-        pyplot.savefig(output + fn + '.svg')
+        pyplot.savefig(output + save_plot + '.svg')
         
     #Save df 
     if save_occur != False:
         output='outputs/occur_freqs/'
-        occurr_freqs.to_csv(output + fn + '.tsv', sep='\t')
+        occurr_freqs.to_csv(output + save_occur + '.tsv', sep='\t')
     
     #Save simulation input df
     if HP_color != False:
@@ -296,7 +298,7 @@ def neufit_plot(occurr_freqs, beta_fit, n_samples, n_reads, r_square, fn, HP_col
     
     if sim_input != False:
         sim='outputs/simulation_input/'
-        occurr_freqs[['mean_abundance']].T.to_csv(sim + fn + '.csv', sep=',', index=False, header=False)
+        occurr_freqs[['mean_abundance']].T.to_csv(sim + sim_input + '.csv', sep=',', index=False, header=False)
 
     pyplot.show()
     
@@ -322,7 +324,7 @@ def standout_microbes(occurr_freqs, fn, save_plot, threshold=0.1):
     output='outputs/non_neutral/'
     
     if save_plot != False:
-        standoutMicrobes.to_csv(output + fn + '.tsv', sep = '\t', index = False)
+        standoutMicrobes.to_csv(output + save_plot + '.tsv', sep = '\t', index = False)
     
 def calculate_summary_table(fn):
     
@@ -371,6 +373,9 @@ def neufit_main(rarefaction_level, fn, ignore_level=0, taxonomy= None, non_color
     
     #Neufit Calculation 
     beta_fit, r_square = neufit_calc(occurr_freqs, n_reads, n_samples)
+    
+    if save != False:
+        save= save + '_r' + str(rarefaction_level)
     
     #Neufit Plotting
     if non_color==True:
